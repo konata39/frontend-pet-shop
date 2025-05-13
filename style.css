@@ -1,0 +1,85 @@
+.banner img {
+  width: 100%;
+  height: 300px;
+  margin-bottom: 5px;
+}
+.banner .title p {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  width: 100%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  top: 70px;
+  font-size: 50px;
+}
+.cardContainer {
+  width: 100%;
+  height: 1750px;
+  display: flex;
+  flex-wrap: wrap;
+  background-color: #bbb;
+  align-content: flex-start;
+}
+.card {
+  width: 200px;
+  height: 300px;
+  background-color: #fff;
+  transition: transform 0.2s; /* Animation */
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  margin: 50px;
+  border-radius: 5px;
+}
+.card:hover {
+  transform: scale(1.3);
+}
+.cardName {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 25px;
+  width: 150px;
+  height: 30px;
+  background-color: #bbb;
+  margin: auto;
+  margin-top: 10px;
+  border-radius: 5px;
+  font-size: 18pt;
+}
+.cardImage {
+  line-height: 25px;
+  width: 150px;
+  height: 150px;
+  position: relative;
+  left: 25px;
+  top: 50px;
+  margin: auto;
+}
+/* When the screen width is 640px or less */
+@media screen and (max-width: 640px) {
+  .card {
+    width: 110px;
+    height: 180px;
+    background-color: #ff0;
+    margin: 6px;
+    border-radius: 5px;
+  }
+  .cardName {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 25px;
+    width: 150px;
+    height: 30px;
+    background-color: #bbb;
+    margin: auto;
+    margin-top: 10px;
+    border-radius: 5px;
+    font-size: 18pt;
+  }
+}
