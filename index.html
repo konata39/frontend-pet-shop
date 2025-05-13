@@ -66,14 +66,6 @@
     }
     /* When the screen width is 640px or less */
     @media screen and (max-width: 640px) {
-      .cardContainer {
-        width: 100%;
-        height: 1750px;
-        display: flex;
-        flex-wrap: wrap;
-        background-color: #888;
-        align-content: flex-start;
-      }
         .card{
           width: 110px;
           height: 180px;
@@ -121,14 +113,14 @@
         //console.log(response.name);
         //console.log(response.sprites.front_default);
         var card = document.createElement('div');
-        card.id = "card";
+        card.id = `card_${response.name}`;
         card.className = "card";
         var cardName = document.createElement('div');
-        cardName.id = "cardName";
+        cardName.id = `cardName_${response.name}`;
         cardName.className = "cardName";
         cardName.innerText = response.name;
         var cardImage = document.createElement('img');
-        cardImage.id = "cardImage";
+        cardImage.id = `cardImage_${response.name}`;
         cardImage.className = "cardImage";
         cardImage.src = response.sprites.front_default;
         card.appendChild(cardName);
