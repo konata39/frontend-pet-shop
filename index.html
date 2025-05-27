@@ -61,7 +61,18 @@
       height: 150px;
       position: relative;
       left:25px;
-      top:50px;
+      margin: auto;
+    }
+    .cardDetail{
+      -webkit-box-orient: vertical;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+      width: 150px;
+      height: 100px;
+      position: relative;
       margin: auto;
     }
     /* When the screen width is 640px or less */
@@ -87,6 +98,12 @@
           margin-top: 10px;
           border-radius: 5px;
           font-size: 18pt;
+        }
+        .cardDetail{
+          width: 150px;
+          height: 150px;
+          position: relative;
+          margin: auto;
         }
     }
   </style>
@@ -115,17 +132,35 @@
         var card = document.createElement('div');
         card.id = `card_${response.name}`;
         card.className = "card";
+
         var cardName = document.createElement('div');
         cardName.id = `cardName_${response.name}`;
         cardName.className = "cardName";
         cardName.innerText = response.name;
+
         var cardImage = document.createElement('img');
         cardImage.id = `cardImage_${response.name}`;
         cardImage.className = "cardImage";
         cardImage.src = response.sprites.front_default;
+
         card.appendChild(cardName);
         card.appendChild(cardImage);
         document.getElementById('cardContainer').appendChild(card);
+
+        fetch(`https://pokeapi.co/api/v2/pokemon-species/${nowCounter}/`)
+        .then((detailResponse) => {
+            return detailResponse.json();
+        }).then( (detailResponse) => {
+          var result = detailResponse.flavor_text_entries.filter(obj => {
+            return obj.language.name === "zh-Hant";
+          })
+          var cardDetail = document.createElement('div');
+          cardDetail.id = `cardDetail_${response.name}`;
+          cardDetail.className = "cardDetail";
+          cardDetail.innerText = result[0].flavor_text.replace(/\s+/g, "");
+          console.log(result[0].flavor_text.replace(/\s+/g, ""))
+          card.appendChild(cardDetail);
+        })
     })
     .catch((error) => {
         alert("Error on get API data!");
