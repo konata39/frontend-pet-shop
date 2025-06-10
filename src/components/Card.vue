@@ -1,8 +1,8 @@
 <template>
   <div class="card" @click="handleClick">
-    <div class="cardName">{{ name }}</div>
-    <img class="cardImage" :src="image" :alt="name" />
-    <div class="cardDetail">{{ detail }}</div>
+    <div class="card-name">{{ name }}</div>
+    <img class="card-image" :src="image" :alt="name" />
+    <div class="card-detail">{{ detail }}</div>
   </div>
 </template>
 
@@ -43,7 +43,7 @@ function handleClick() {
   transform: scale(1.3);
 }
 
-.cardName {
+.card-name {
   font-family: "Noto Sans TC", sans-serif;
   text-align: center;
   line-height: 25px;
@@ -55,14 +55,14 @@ function handleClick() {
   font-size: 18pt;
 }
 
-.cardImage {
+.card-image {
   margin-top: 10px;
   width: 150px;
   height: 150px;
   object-fit: contain;
 }
 
-.cardDetail {
+.card-detail {
   margin-top: 5px;
   font-family: "Noto Sans TC", sans-serif;
   font-size: 12px;
@@ -81,15 +81,15 @@ function handleClick() {
     background-color: #ff0;
     margin: 6px;
   }
-  .cardName {
+  .card-name {
     width: 110px;
     font-size: 12pt;
   }
-  .cardImage {
+  .card-image {
     width: 80px;
     height: 80px;
   }
-  .cardDetail {
+  .cardD-detail {
     width: 80px;
     height: 80px;
     font-size: 10px;

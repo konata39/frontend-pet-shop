@@ -6,7 +6,7 @@
       alt="Banner Image"
     />
     <div class="title">
-      <p>Konata 的寵物店</p>
+      <h1>Konata 的寵物店</h1>
     </div>
   </div>
 </template>
@@ -40,7 +40,7 @@
   pointer-events: none;
 }
 
-.banner .title p {
+.banner .title h1 {
   margin: 0;
   font-family: "Noto Sans TC", sans-serif;
   font-size: 50px;

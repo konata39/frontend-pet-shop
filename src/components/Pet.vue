@@ -1,12 +1,7 @@
 
 <template>
-<div class="detail-sidebar" id="rightMenu" style="">
-  <button class="closeTabw3-bar-item w3-button w3-large"onclick="detailClose()">Close &times;</button>
-  <div id="display-block"></div>
+<div class="card-container" id="card-container">
 </div>
-<div class="cardContainer" id="cardContainer">
-</div>
-  <button onclick="getPokeAPI()">GET new PET!</button>
 </template>
 
 <script setup>
@@ -24,22 +19,22 @@ function getPokeAPI(){
       card.id = `card_${response.name}`;
       card.className = "card";
 
-      var cardName = document.createElement('div');
-      cardName.id = `cardName_${response.name}`;
-      cardName.className = "cardName";
-      cardName.innerText = response.name;
+      var card-name = document.createElement('div');
+      card-name.id = `card-name_${response.name}`;
+      card-name.className = "card-name";
+      card-name.innerText = response.name;
 
-      var cardImage = document.createElement('img');
-      cardImage.id = `cardImage_${response.name}`;
-      cardImage.className = "cardImage";
-      cardImage.src = response.sprites.front_default;
+      var card-image = document.createElement('img');
+      card-image.id = `card-image_${response.name}`;
+      card-image.className = "card-image";
+      card-image.src = response.sprites.front_default;
 
-      card.appendChild(cardName);
-      card.appendChild(cardImage);
+      card.appendChild(card-name);
+      card.appendChild(card-image);
       card.onclick = function () {
         detailOpen(`${response.name}`);
       }
-      document.getElementById('cardContainer').appendChild(card);
+      document.getElementById('card-container').appendChild(card);
 
       fetch(`https://pokeapi.co/api/v2/pokemon-species/${nowCounter}/`)
       .then((detailResponse) => {
@@ -48,12 +43,12 @@ function getPokeAPI(){
         var result = detailResponse.flavor_text_entries.filter(obj => {
           return obj.language.name === "zh-Hant";
         })
-        var cardDetail = document.createElement('div');
-        cardDetail.id = `cardDetail_${response.name}`;
-        cardDetail.className = "cardDetail";
-        cardDetail.innerText = result[0].flavor_text.replace(/\s+/g, "");
+        var card-detail = document.createElement('div');
+        card-detail.id = `card-detail_${response.name}`;
+        card-detail.className = "card-detail";
+        card-detail.innerText = result[0].flavor_text.replace(/\s+/g, "");
         console.log(result[0].flavor_text.replace(/\s+/g, ""))
-        card.appendChild(cardDetail);
+        card.appendChild(card-detail);
       })
   })
   .catch((error) => {
@@ -71,15 +66,15 @@ function detailOpen(petName) {
     })
     document.getElementById("display-block").innerText = result[0].flavor_text.replace(/\s+/g, "");
   })
-  document.getElementById("rightMenu").style.display = "block";
+  document.getElementById("right-menu").style.display = "block";
 }
 function detailClose() {
-  document.getElementById("rightMenu").style.display = "none";
+  document.getElementById("right-menu").style.display = "none";
 }
 </script>
 
 <style scoped>
-.closeTab{
+.close-tab{
   padding:8px 16px;
   float:right;
   width:auto;
@@ -87,7 +82,7 @@ function detailClose() {
   display:block;
   outline:0;
 }
-.cardContainer {
+.card-container {
   width: 100%;
   height: 1750px;
   display: flex;
@@ -122,7 +117,7 @@ function detailClose() {
 .display-block{
   display:block;
 }
-.cardName{
+.card-name{
   font-family: "Noto Sans TC", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
@@ -137,7 +132,7 @@ function detailClose() {
   border-radius: 5px;
   font-size: 18pt;
 }
-.cardImage{
+.card-image{
   line-height: 25px;
   width: 150px;
   height: 150px;
@@ -145,7 +140,7 @@ function detailClose() {
   left:25px;
   margin: auto;
 }
-.cardDetail{
+.card-detail{
   -webkit-box-orient: vertical;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -167,7 +162,7 @@ function detailClose() {
       margin: 6px;
       border-radius: 5px;
     }
-    .cardName{
+    .card-name{
       font-family: "Noto Sans TC", sans-serif;
       font-optical-sizing: auto;
       font-style: normal;
@@ -182,7 +177,7 @@ function detailClose() {
       border-radius: 5px;
       font-size: 18pt;
     }
-    .cardDetail{
+    .card-detail{
       width: 150px;
       height: 150px;
       position: relative;
