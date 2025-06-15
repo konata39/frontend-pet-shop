@@ -102,18 +102,7 @@ function detailClose() {
 .card:hover{
   transform: scale(1.3);
 }
-.detail-sidebar{
-  height:100%;
-  width:200px;
-  top: 0;
-  background-color: #fff;
-  position: fixed !important;
-  z-index: 1;
-  display:none;
-  right:0px;
-  box-shadow:0 2px 5px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12);
-  animation: animateright 0.4s;
-}
+
 .display-block{
   display:block;
 }
@@ -184,8 +173,5 @@ function detailClose() {
       margin: auto;
     }
 }
-@keyframes animateright {
-  0% {right:-300px; opacity: 0;}
-  100% {right:0; opacity:1;}
-}
+
 </style>

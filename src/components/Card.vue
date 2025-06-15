@@ -1,5 +1,8 @@
 <template>
-  <div class="card" @click="handleClick">
+  <div class="card"
+  :class="cardClasses"
+  @click="handleClick"
+  >
     <div class="card-name">{{ name }}</div>
     <img class="card-image" :src="image" :alt="name" />
     <div class="card-detail">{{ detail }}</div>
@@ -7,19 +10,26 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from "vue";
+import { defineProps, defineEmits, computed } from "vue";
 
 const props = defineProps({
+  id: { type: [String, Number], required: true },
   name: { type: String, required: true },
   image: { type: String, required: true },
   detail: { type: String, required: true },
+  health: { type: Number, required: true },
 });
 
 const emit = defineEmits(["select"]);
 
 function handleClick() {
-  emit("select", props.name);
+  emit("select", props.id);
 }
+
+const cardClasses = computed(() => ({
+  warning: props.health < 60,
+  healthy: props.health >= 60,
+}));
 </script>
 
 <style scoped>
@@ -41,6 +51,20 @@ function handleClick() {
 
 .card:hover {
   transform: scale(1.3);
+}
+
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255,0,0,0.7); }
+  50%  { box-shadow: 0 0 10px 5px rgba(255,0,0,0.5); }
+  100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
+}
+.warning {
+  border: 2px solid rgba(255,0,0,0.7);
+  animation: pulse 2s infinite;
+}
+
+.healthy {
+  border: 2px solid rgba(0,128,0,0.7);
 }
 
 .card-name {
