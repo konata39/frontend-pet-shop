@@ -8,6 +8,7 @@ length<template>
         :image="card.image"
         :detail="card.detail"
         :health="card.health"
+        :happiness="card.happiness"
         @select="detailOpen"
       />
     </div>
@@ -20,11 +21,17 @@ length<template>
         <h2>{{ selectedName }}</h2>
         <img v-if="selectedImage" :src="selectedImage" :alt="selectedName" />
         <p>{{ selectedDetail }}</p>
-        <p class="health-display">
+        <p class="status-display">
           健康值：{{ selectedHealth }} / 100
         </p>
+        <p class="status-display">
+          快樂值：{{ selectedHappiness }} / 100
+        </p>
       <button class="recover-btn" @click="recoverHealth">
-        恢復健康值 +10
+        餵食寶可夢
+      </button>
+      <button class="recover-btn" @click="recoverHappiness">
+        跟寶可夢玩
       </button>
       </div>
     </div>
@@ -42,11 +49,14 @@ const selectedName = ref('');
 const selectedImage = ref('');
 const selectedDetail = ref('');
 const selectedHealth = ref(0);
+const selectedHappiness = ref(0);
 async function getPokeAPI() {
   length.value++;
   try {
     const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${length.value}/`);
+    //const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/?limit=20&offset=0`);
     const pokeData = await pokeRes.json();
+    //console.log(pokeData.results[0]);
     const name = pokeData.name;
     const image = pokeData.sprites.front_default;
 
@@ -57,7 +67,7 @@ async function getPokeAPI() {
       ? entry.flavor_text.replace(/\s+/g, '')
       : '無中文介紹';
 
-    cards.value.push({ id: length.value, name, image, detail: detailText, health: 0 });
+    cards.value.push({ id: length.value, name, image, detail: detailText, health: 0, happiness: 0 });
   } catch (err) {
     console.error(err);
     alert('Error on get API data!');
@@ -70,6 +80,7 @@ async function detailOpen(id) {
     const card = cards.value.find(c => c.id === id);
     if (card) {
       selectedHealth.value = card.health;
+      selectedHappiness.value = card.happiness;
     }
     const pokeRes  = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`);
     const pokeData = await pokeRes.json();
@@ -104,6 +115,18 @@ function recoverHealth() {
   const card = cards.value.find(c => c.id === selectedId.value);
   if (card) {
     card.health = newHealth;
+  }
+}
+
+function recoverHappiness() {
+  if (selectedId.value === null) return;
+
+  const newHappiness = Math.min(selectedHappiness.value + 10, 100);
+  selectedHappiness.value = newHappiness;
+
+  const card = cards.value.find(c => c.id === selectedId.value);
+  if (card) {
+    card.happiness = newHappiness;
   }
 }
 </script>

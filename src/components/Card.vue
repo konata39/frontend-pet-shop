@@ -6,6 +6,8 @@
     <div class="card-name">{{ name }}</div>
     <img class="card-image" :src="image" :alt="name" />
     <div class="card-detail">{{ detail }}</div>
+    <div class="card-stats">健康值：{{ health }} / 100</div>
+    <div class="card-stats">快樂值：{{ happiness }} / 100</div>
   </div>
 </template>
 
@@ -18,6 +20,7 @@ const props = defineProps({
   image: { type: String, required: true },
   detail: { type: String, required: true },
   health: { type: Number, required: true },
+  happiness: { type: Number, required: true },
 });
 
 const emit = defineEmits(["select"]);
@@ -27,8 +30,8 @@ function handleClick() {
 }
 
 const cardClasses = computed(() => ({
-  warning: props.health < 60,
-  healthy: props.health >= 60,
+  warning: props.health < 60 || props.happiness < 60,
+  healthy: props.health >= 60 && props.happiness >= 60,
 }));
 </script>
 
@@ -47,6 +50,13 @@ const cardClasses = computed(() => ({
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.card-stats {
+  font-size: 12px;
+  font-family: "Noto Sans TC", sans-serif;
+  color: #333;
+  margin-top: 4px;
 }
 
 .card:hover {
@@ -81,8 +91,8 @@ const cardClasses = computed(() => ({
 
 .card-image {
   margin-top: 10px;
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
 }
 
@@ -113,7 +123,7 @@ const cardClasses = computed(() => ({
     width: 80px;
     height: 80px;
   }
-  .cardD-detail {
+  .card-detail {
     width: 80px;
     height: 80px;
     font-size: 10px;
