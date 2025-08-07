@@ -1,4 +1,4 @@
-length<template>
+<template>
 <div id="card-container" class="card-container">
       <Card
         v-for="(card, idx) in cards"
