@@ -43,7 +43,7 @@ const cardClasses = computed(() => ({
   transition: transform 0.2s;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
     0 6px 20px rgba(0, 0, 0, 0.19);
-  margin: 50px;
+  margin: 0;
   border-radius: 5px;
   cursor: pointer;
   overflow: hidden;
@@ -55,7 +55,7 @@ const cardClasses = computed(() => ({
 .card-stats {
   font-size: 12px;
   font-family: "Noto Sans TC", sans-serif;
-  color: #333;
+  color: #222;
   margin-top: 4px;
 }
 
@@ -83,7 +83,8 @@ const cardClasses = computed(() => ({
   line-height: 25px;
   width: 150px;
   height: 30px;
-  background-color: #bbb;
+  background-color: #F5F5F5;
+  color: #222;
   margin-top: 10px;
   border-radius: 5px;
   font-size: 18pt;
