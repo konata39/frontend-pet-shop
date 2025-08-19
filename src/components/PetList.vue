@@ -1,8 +1,9 @@
 <template>
-<div id="card-container" class="card-container">
+<div v-if="isLoading" class="loading">載入中...</div>
+<div v-else id="card-container" class="card-container">
       <Card
-        v-for="(card, idx) in cards"
-        :key="card.name + idx"
+        v-for="card in cards"
+        :key="card.id"
         :id="card.id"
         :name="card.name"
         :image="card.image"
@@ -41,7 +42,8 @@
 import { ref } from "vue";
 import Card from "../components/Card.vue";
 const cards = ref([]);
-const length = ref(0);
+const offset = ref(0);
+const isLoading = ref(false);
 const sidebarVisible = ref(false);
 
 const selectedId = ref(null);
@@ -51,26 +53,40 @@ const selectedDetail = ref('');
 const selectedHealth = ref(0);
 const selectedHappiness = ref(0);
 async function getPokeAPI() {
-  length.value++;
+  isLoading.value = true;
   try {
-    const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${length.value}/`);
-    //const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/?limit=20&offset=0`);
-    const pokeData = await pokeRes.json();
-    //console.log(pokeData.results[0]);
-    const name = pokeData.name;
-    const image = pokeData.sprites.front_default;
+    const listRes = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=20&offset=${offset.value}`);
+    const listData = await listRes.json();
 
-    const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${length.value}/`);
-    const speciesData = await speciesRes.json();
-    const entry = speciesData.flavor_text_entries.find(e => e.language.name === 'zh-Hant');
-    const detailText = entry
-      ? entry.flavor_text.replace(/\s+/g, '')
-      : '無中文介紹';
+    const detailPromises = listData.results.map(async (item) => {
+      const pokeRes = await fetch(item.url);
+      const pokeData = await pokeRes.json();
 
-    cards.value.push({ id: length.value, name, image, detail: detailText, health: 0, happiness: 0 });
+      const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokeData.id}/`);
+      const speciesData = await speciesRes.json();
+      const entry = speciesData.flavor_text_entries.find(e => e.language.name === 'zh-Hant');
+      const detailText = entry
+        ? entry.flavor_text.replace(/\s+/g, '')
+        : '無中文介紹';
+
+      return {
+        id: pokeData.id,
+        name: pokeData.name,
+        image: pokeData.sprites.front_default,
+        detail: detailText,
+        health: 0,
+        happiness: 0,
+      };
+    });
+
+    const newCards = await Promise.all(detailPromises);
+    cards.value.push(...newCards);
+    offset.value += newCards.length;
   } catch (err) {
     console.error(err);
     alert('Error on get API data!');
+  } finally {
+    isLoading.value = false;
   }
 }
 
@@ -82,13 +98,12 @@ async function detailOpen(id) {
       selectedHealth.value = card.health;
       selectedHappiness.value = card.happiness;
     }
-    const pokeRes  = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`);
-    const pokeData = await pokeRes.json();
+    const [pokeData, speciesData] = await Promise.all([
+      fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`).then(res => res.json()),
+      fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`).then(res => res.json()),
+    ]);
     selectedName.value  = pokeData.name;
     selectedImage.value = pokeData.sprites.front_default;
-
-    const speciesRes  = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`);
-    const speciesData = await speciesRes.json();
     const entry = speciesData.flavor_text_entries.find(e => e.language.name === 'zh-Hant');
     selectedDetail.value = entry
       ? entry.flavor_text.replace(/\s+/g, '')
@@ -134,24 +149,50 @@ function recoverHappiness() {
 <style scoped>
 .card-container {
   width: 100%;
-  height: 1750px;
-  display: flex;
-  flex-wrap: wrap;
-  background-color: #bbb;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  background-color: #F5F5F5;
   align-content: flex-start;
-  padding-bottom: 20px;
+  padding: 20px;
   box-sizing: border-box;
+  justify-items: center;
+}
+
+@media (max-width: 640px) {
+  .card-container {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  }
 }
 
 .button-container {
-  text-align: center;
-  margin: 20px 0;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
 }
 
-.button-container button {
-  padding: 8px 16px;
+.button-container button,
+.recover-btn,
+.close-tab {
+  padding: 12px 20px;
   font-size: 16px;
   cursor: pointer;
+  background-color: #222;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+.recover-btn {
+  margin-top: 10px;
+}
+
+.close-tab {
+  margin: 10px;
+}
+.loading {
+  text-align: center;
+  margin: 20px 0;
 }
 .detail-sidebar{
   height:100%;
