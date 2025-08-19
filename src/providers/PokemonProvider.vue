@@ -6,9 +6,18 @@ export const PokemonStatusSymbol = Symbol('PokemonStatus');
 function createPokemonStore() {
   const state = reactive({});
 
-  function initPokemon(id, { health = 0, happiness = 0 } = {}) {
+  function initPokemon(id, data = {}) {
     if (!state[id]) {
-      state[id] = { health, happiness };
+      state[id] = {
+        name: '',
+        image: '',
+        detail: '',
+        health: 0,
+        happiness: 0,
+        ...data,
+      };
+    } else {
+      Object.assign(state[id], data);
     }
   }
 

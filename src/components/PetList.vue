@@ -2,12 +2,9 @@
 <div v-if="isLoading" class="loading">載入中...</div>
 <div v-else id="card-container" class="card-container">
       <Card
-        v-for="card in cards"
-        :key="card.id"
-        :id="card.id"
-        :name="card.name"
-        :image="card.image"
-        :detail="card.detail"
+        v-for="id in cardIds"
+        :key="id"
+        :id="id"
         @select="detailOpen"
       />
     </div>
@@ -40,27 +37,48 @@
 import { ref, computed } from "vue";
 import Card from "../components/Card.vue";
 import { usePokemonStore } from "../providers/PokemonProvider.vue";
-const cards = ref([]);
 const offset = ref(0);
 const isLoading = ref(false);
 const sidebarVisible = ref(false);
 
 const selectedId = ref(null);
-const selectedName = ref('');
-const selectedImage = ref('');
-const selectedDetail = ref('');
-const { state, initPokemon, updateHealth, updateHappiness } = usePokemonStore();
-const selectedHealth = computed(() => {
-  return selectedId.value !== null && state[selectedId.value]
-    ? state[selectedId.value].health
-    : 0;
-});
+const { state, updateHealth, updateHappiness, initPokemon } = usePokemonStore();
 
-const selectedHappiness = computed(() => {
-  return selectedId.value !== null && state[selectedId.value]
+const cardIds = computed(() =>
+  Object.keys(state)
+    .map((id) => Number(id))
+    .filter((id) => !Number.isNaN(id))
+);
+
+const selectedName = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].name
+    : ''
+);
+
+const selectedImage = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].image
+    : ''
+);
+
+const selectedDetail = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].detail
+    : ''
+);
+
+const selectedHealth = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].health
+    : 0
+);
+
+const selectedHappiness = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
     ? state[selectedId.value].happiness
-    : 0;
-});
+    : 0
+);
 async function getPokeAPI() {
   isLoading.value = true;
   try {
@@ -77,19 +95,15 @@ async function getPokeAPI() {
       const detailText = entry
         ? entry.flavor_text.replace(/\s+/g, '')
         : '無中文介紹';
-      const id = pokeData.id;
-      initPokemon(id);
-      return {
-        id,
+      initPokemon(pokeData.id, {
         name: pokeData.name,
         image: pokeData.sprites.front_default,
         detail: detailText,
-      };
+      });
     });
 
-    const newCards = await Promise.all(detailPromises);
-    cards.value.push(...newCards);
-    offset.value += newCards.length;
+    await Promise.all(detailPromises);
+    offset.value += listData.results.length;
   } catch (err) {
     console.error(err);
     alert('Error on get API data!');
@@ -98,24 +112,8 @@ async function getPokeAPI() {
   }
 }
 
-async function detailOpen(id) {
+function detailOpen(id) {
   selectedId.value = id;
-  try {
-    const [pokeData, speciesData] = await Promise.all([
-      fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`).then(res => res.json()),
-      fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`).then(res => res.json()),
-    ]);
-    selectedName.value  = pokeData.name;
-    selectedImage.value = pokeData.sprites.front_default;
-    const entry = speciesData.flavor_text_entries.find(e => e.language.name === 'zh-Hant');
-    selectedDetail.value = entry
-      ? entry.flavor_text.replace(/\s+/g, '')
-      : '無中文介紹';
-
-  } catch (err) {
-    console.error(err);
-    selectedDetail.value = 'Fetch detail failed';
-  }
   sidebarVisible.value = true;
 }
 
