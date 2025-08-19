@@ -8,8 +8,6 @@
         :name="card.name"
         :image="card.image"
         :detail="card.detail"
-        :health="card.health"
-        :happiness="card.happiness"
         @select="detailOpen"
       />
     </div>
@@ -39,8 +37,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import Card from "../components/Card.vue";
+import { usePokemonStore } from "../providers/PokemonProvider.vue";
 const cards = ref([]);
 const offset = ref(0);
 const isLoading = ref(false);
@@ -50,8 +49,18 @@ const selectedId = ref(null);
 const selectedName = ref('');
 const selectedImage = ref('');
 const selectedDetail = ref('');
-const selectedHealth = ref(0);
-const selectedHappiness = ref(0);
+const { state, initPokemon, updateHealth, updateHappiness } = usePokemonStore();
+const selectedHealth = computed(() => {
+  return selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].health
+    : 0;
+});
+
+const selectedHappiness = computed(() => {
+  return selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].happiness
+    : 0;
+});
 async function getPokeAPI() {
   isLoading.value = true;
   try {
@@ -68,14 +77,13 @@ async function getPokeAPI() {
       const detailText = entry
         ? entry.flavor_text.replace(/\s+/g, '')
         : '無中文介紹';
-
+      const id = pokeData.id;
+      initPokemon(id);
       return {
-        id: pokeData.id,
+        id,
         name: pokeData.name,
         image: pokeData.sprites.front_default,
         detail: detailText,
-        health: 0,
-        happiness: 0,
       };
     });
 
@@ -93,11 +101,6 @@ async function getPokeAPI() {
 async function detailOpen(id) {
   selectedId.value = id;
   try {
-    const card = cards.value.find(c => c.id === id);
-    if (card) {
-      selectedHealth.value = card.health;
-      selectedHappiness.value = card.happiness;
-    }
     const [pokeData, speciesData] = await Promise.all([
       fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`).then(res => res.json()),
       fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`).then(res => res.json()),
@@ -123,26 +126,14 @@ function detailClose() {
 
 function recoverHealth() {
   if (selectedId.value === null) return;
-
-  const newHealth = Math.min(selectedHealth.value + 10, 100);
-  selectedHealth.value = newHealth;
-
-  const card = cards.value.find(c => c.id === selectedId.value);
-  if (card) {
-    card.health = newHealth;
-  }
+  const currentHealth = state[selectedId.value].health;
+  updateHealth(selectedId.value, Math.min(currentHealth + 10, 100));
 }
 
 function recoverHappiness() {
   if (selectedId.value === null) return;
-
-  const newHappiness = Math.min(selectedHappiness.value + 10, 100);
-  selectedHappiness.value = newHappiness;
-
-  const card = cards.value.find(c => c.id === selectedId.value);
-  if (card) {
-    card.happiness = newHappiness;
-  }
+  const currentHappiness = state[selectedId.value].happiness;
+  updateHappiness(selectedId.value, Math.min(currentHappiness + 10, 100));
 }
 </script>
 
