@@ -13,25 +13,28 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from "vue";
+import { usePokemonStore } from "../providers/PokemonProvider.vue";
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
-  name: { type: String, required: true },
-  image: { type: String, required: true },
-  detail: { type: String, required: true },
-  health: { type: Number, required: true },
-  happiness: { type: Number, required: true },
 });
 
 const emit = defineEmits(["select"]);
+const { state } = usePokemonStore();
+const name = computed(() => state[props.id]?.name ?? "");
+const image = computed(() => state[props.id]?.image ?? "");
+const detail = computed(() => state[props.id]?.detail ?? "");
+const health = computed(() => state[props.id]?.health ?? 0);
+const happiness = computed(() => state[props.id]?.happiness ?? 0);
+
 
 function handleClick() {
   emit("select", props.id);
 }
 
 const cardClasses = computed(() => ({
-  warning: props.health < 60 || props.happiness < 60,
-  healthy: props.health >= 60 && props.happiness >= 60,
+  warning: health.value < 60 || happiness.value < 60,
+  healthy: health.value >= 60 && happiness.value >= 60,
 }));
 </script>
 

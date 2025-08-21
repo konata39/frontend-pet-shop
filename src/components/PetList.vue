@@ -2,14 +2,9 @@
 <div v-if="isLoading" class="loading">載入中...</div>
 <div v-else id="card-container" class="card-container">
       <Card
-        v-for="card in cards"
-        :key="card.id"
-        :id="card.id"
-        :name="card.name"
-        :image="card.image"
-        :detail="card.detail"
-        :health="card.health"
-        :happiness="card.happiness"
+        v-for="id in cardIds"
+        :key="id"
+        :id="id"
         @select="detailOpen"
       />
     </div>
@@ -39,19 +34,51 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import Card from "../components/Card.vue";
-const cards = ref([]);
+import { usePokemonStore } from "../providers/PokemonProvider.vue";
 const offset = ref(0);
 const isLoading = ref(false);
 const sidebarVisible = ref(false);
 
 const selectedId = ref(null);
-const selectedName = ref('');
-const selectedImage = ref('');
-const selectedDetail = ref('');
-const selectedHealth = ref(0);
-const selectedHappiness = ref(0);
+const { state, updateHealth, updateHappiness, initPokemon } = usePokemonStore();
+
+const cardIds = computed(() =>
+  Object.keys(state)
+    .map((id) => Number(id))
+    .filter((id) => !Number.isNaN(id))
+);
+
+const selectedName = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].name
+    : ''
+);
+
+const selectedImage = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].image
+    : ''
+);
+
+const selectedDetail = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].detail
+    : ''
+);
+
+const selectedHealth = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].health
+    : 0
+);
+
+const selectedHappiness = computed(() =>
+  selectedId.value !== null && state[selectedId.value]
+    ? state[selectedId.value].happiness
+    : 0
+);
 async function getPokeAPI() {
   isLoading.value = true;
   try {
@@ -68,20 +95,15 @@ async function getPokeAPI() {
       const detailText = entry
         ? entry.flavor_text.replace(/\s+/g, '')
         : '無中文介紹';
-
-      return {
-        id: pokeData.id,
+      initPokemon(pokeData.id, {
         name: pokeData.name,
         image: pokeData.sprites.front_default,
         detail: detailText,
-        health: 0,
-        happiness: 0,
-      };
+      });
     });
 
-    const newCards = await Promise.all(detailPromises);
-    cards.value.push(...newCards);
-    offset.value += newCards.length;
+    await Promise.all(detailPromises);
+    offset.value += listData.results.length;
   } catch (err) {
     console.error(err);
     alert('Error on get API data!');
@@ -90,29 +112,8 @@ async function getPokeAPI() {
   }
 }
 
-async function detailOpen(id) {
+function detailOpen(id) {
   selectedId.value = id;
-  try {
-    const card = cards.value.find(c => c.id === id);
-    if (card) {
-      selectedHealth.value = card.health;
-      selectedHappiness.value = card.happiness;
-    }
-    const [pokeData, speciesData] = await Promise.all([
-      fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`).then(res => res.json()),
-      fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`).then(res => res.json()),
-    ]);
-    selectedName.value  = pokeData.name;
-    selectedImage.value = pokeData.sprites.front_default;
-    const entry = speciesData.flavor_text_entries.find(e => e.language.name === 'zh-Hant');
-    selectedDetail.value = entry
-      ? entry.flavor_text.replace(/\s+/g, '')
-      : '無中文介紹';
-
-  } catch (err) {
-    console.error(err);
-    selectedDetail.value = 'Fetch detail failed';
-  }
   sidebarVisible.value = true;
 }
 
@@ -123,26 +124,14 @@ function detailClose() {
 
 function recoverHealth() {
   if (selectedId.value === null) return;
-
-  const newHealth = Math.min(selectedHealth.value + 10, 100);
-  selectedHealth.value = newHealth;
-
-  const card = cards.value.find(c => c.id === selectedId.value);
-  if (card) {
-    card.health = newHealth;
-  }
+  const currentHealth = state[selectedId.value].health;
+  updateHealth(selectedId.value, Math.min(currentHealth + 10, 100));
 }
 
 function recoverHappiness() {
   if (selectedId.value === null) return;
-
-  const newHappiness = Math.min(selectedHappiness.value + 10, 100);
-  selectedHappiness.value = newHappiness;
-
-  const card = cards.value.find(c => c.id === selectedId.value);
-  if (card) {
-    card.happiness = newHappiness;
-  }
+  const currentHappiness = state[selectedId.value].happiness;
+  updateHappiness(selectedId.value, Math.min(currentHappiness + 10, 100));
 }
 </script>
 
