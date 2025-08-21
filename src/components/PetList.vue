@@ -29,6 +29,10 @@
       <button class="recover-btn" @click="recoverHappiness">
         跟寶可夢玩
       </button>
+      <button class="cry-btn" @click="playDefaultCry($event)">
+        播放叫聲
+      </button>
+      <audio ref="cryAudio"></audio>
       </div>
     </div>
 </template>
@@ -40,9 +44,16 @@ import { usePokemonStore } from "../providers/PokemonProvider.vue";
 const offset = ref(0);
 const isLoading = ref(false);
 const sidebarVisible = ref(false);
+const cryAudio = ref(null);
+const defaultCry = new URL("../assets/pokemon_sound.mp3", import.meta.url).href;
 
 const selectedId = ref(null);
 const { state, updateHealth, updateHappiness, initPokemon } = usePokemonStore();
+
+function playDefaultCry(event) {
+  cryAudio.value.src = defaultCry;
+  cryAudio.value.play();
+}
 
 const cardIds = computed(() =>
   Object.keys(state)
@@ -175,6 +186,7 @@ function recoverHappiness() {
 
 .button-container button,
 .recover-btn,
+.cry-btn,
 .close-tab {
   padding: 12px 20px;
   font-size: 16px;
@@ -184,6 +196,7 @@ function recoverHappiness() {
   border: none;
   border-radius: 4px;
 }
+.cry-btn,
 .recover-btn {
   margin-top: 10px;
 }

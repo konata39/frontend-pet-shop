@@ -54,24 +54,6 @@ const cardClasses = computed(() => ({
   warning: health.value < 60 || happiness.value < 60,
   healthy: health.value >= 60 && happiness.value >= 60,
 }));
-
-function playWarning(src) {
-  if (!cryAudio.value) return;
-  cryAudio.value.src = src;
-  cryAudio.value.play();
-}
-
-watch(health, (newVal, oldVal) => {
-  if (newVal < 60 && oldVal >= 60) {
-    playWarning(lowHealthCry);
-  }
-});
-
-watch(happiness, (newVal, oldVal) => {
-  if (newVal < 60 && oldVal >= 60) {
-    playWarning(lowHappinessCry);
-  }
-});
 </script>
 
 <style scoped>
