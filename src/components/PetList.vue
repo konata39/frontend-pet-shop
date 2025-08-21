@@ -85,24 +85,20 @@ async function getPokeAPI() {
     const listRes = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=20&offset=${offset.value}`);
     const listData = await listRes.json();
 
-    const detailPromises = listData.results.map(async (item) => {
+    const fetchPromises = listData.results.map(async (item) => {
       const pokeRes = await fetch(item.url);
       const pokeData = await pokeRes.json();
 
-      const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokeData.id}/`);
-      const speciesData = await speciesRes.json();
-      const entry = speciesData.flavor_text_entries.find(e => e.language.name === 'zh-Hant');
-      const detailText = entry
-        ? entry.flavor_text.replace(/\s+/g, '')
-        : '無中文介紹';
+      const APIUrl = `https://pokeapi.co/api/v2/pokemon-species/${pokeData.id}/`;
       initPokemon(pokeData.id, {
         name: pokeData.name,
         image: pokeData.sprites.front_default,
-        detail: detailText,
+        detail: '',
+        detailUrl: APIUrl,
       });
     });
 
-    await Promise.all(detailPromises);
+    await Promise.all(fetchPromises);
     offset.value += listData.results.length;
   } catch (err) {
     console.error(err);
@@ -112,9 +108,25 @@ async function getPokeAPI() {
   }
 }
 
-function detailOpen(id) {
+async function detailOpen(id) {
   selectedId.value = id;
   sidebarVisible.value = true;
+  const pokemon = state[id];
+  if (pokemon && !pokemon.detail) {
+    try {
+      const speciesRes = await fetch(pokemon.detailUrl);
+      const speciesData = await speciesRes.json();
+      const entry = speciesData.flavor_text_entries.find(
+        (e) => e.language.name === 'zh-Hant'
+      );
+      const detailText = entry
+        ? entry.flavor_text.replace(/\s+/g, '')
+        : '無中文介紹';
+      initPokemon(id, { detail: detailText });
+    } catch (err) {
+      console.error(err);
+    }
+  }
 }
 
 function detailClose() {

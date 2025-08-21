@@ -12,6 +12,7 @@ function createPokemonStore() {
         name: '',
         image: '',
         detail: '',
+        detailUrl: '',
         health: 0,
         happiness: 0,
         ...data,

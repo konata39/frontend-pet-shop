@@ -5,7 +5,6 @@
   >
     <div class="card-name">{{ name }}</div>
     <img class="card-image" :src="image" :alt="name" />
-    <div class="card-detail">{{ detail }}</div>
     <div class="card-stats">健康值：{{ health }} / 100</div>
     <div class="card-stats">快樂值：{{ happiness }} / 100</div>
   </div>
@@ -100,23 +99,11 @@ const cardClasses = computed(() => ({
   object-fit: contain;
 }
 
-.card-detail {
-  margin-top: 5px;
-  font-family: "Noto Sans TC", sans-serif;
-  font-size: 12px;
-  width: 150px;
-  height: 100px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-}
 @media screen and (max-width: 640px) {
   .card {
     width: 110px;
     height: 180px;
-    background-color: #ff0;
+    background-color: #fff;
     margin: 6px;
   }
   .card-name {
@@ -127,10 +114,6 @@ const cardClasses = computed(() => ({
     width: 80px;
     height: 80px;
   }
-  .card-detail {
-    width: 80px;
-    height: 80px;
-    font-size: 10px;
-  }
+
 }
 </style>
