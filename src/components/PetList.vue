@@ -29,6 +29,10 @@
       <button class="recover-btn" @click="recoverHappiness">
         跟寶可夢玩
       </button>
+      <button class="cry-btn" @click="playDefaultCry($event)">
+        播放叫聲
+      </button>
+      <audio ref="cryAudio"></audio>
       </div>
     </div>
 </template>
@@ -40,9 +44,16 @@ import { usePokemonStore } from "../providers/PokemonProvider.vue";
 const offset = ref(0);
 const isLoading = ref(false);
 const sidebarVisible = ref(false);
+const cryAudio = ref(null);
+const defaultCry = new URL("../assets/pokemon_sound.mp3", import.meta.url).href;
 
 const selectedId = ref(null);
 const { state, updateHealth, updateHappiness, initPokemon } = usePokemonStore();
+
+function playDefaultCry(event) {
+  cryAudio.value.src = defaultCry;
+  cryAudio.value.play();
+}
 
 const cardIds = computed(() =>
   Object.keys(state)
@@ -85,24 +96,20 @@ async function getPokeAPI() {
     const listRes = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=20&offset=${offset.value}`);
     const listData = await listRes.json();
 
-    const detailPromises = listData.results.map(async (item) => {
+    const fetchPromises = listData.results.map(async (item) => {
       const pokeRes = await fetch(item.url);
       const pokeData = await pokeRes.json();
 
-      const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${pokeData.id}/`);
-      const speciesData = await speciesRes.json();
-      const entry = speciesData.flavor_text_entries.find(e => e.language.name === 'zh-Hant');
-      const detailText = entry
-        ? entry.flavor_text.replace(/\s+/g, '')
-        : '無中文介紹';
+      const APIUrl = `https://pokeapi.co/api/v2/pokemon-species/${pokeData.id}/`;
       initPokemon(pokeData.id, {
         name: pokeData.name,
         image: pokeData.sprites.front_default,
-        detail: detailText,
+        detail: '',
+        detailUrl: APIUrl,
       });
     });
 
-    await Promise.all(detailPromises);
+    await Promise.all(fetchPromises);
     offset.value += listData.results.length;
   } catch (err) {
     console.error(err);
@@ -112,9 +119,25 @@ async function getPokeAPI() {
   }
 }
 
-function detailOpen(id) {
+async function detailOpen(id) {
   selectedId.value = id;
   sidebarVisible.value = true;
+  const pokemon = state[id];
+  if (pokemon && !pokemon.detail) {
+    try {
+      const speciesRes = await fetch(pokemon.detailUrl);
+      const speciesData = await speciesRes.json();
+      const entry = speciesData.flavor_text_entries.find(
+        (e) => e.language.name === 'zh-Hant'
+      );
+      const detailText = entry
+        ? entry.flavor_text.replace(/\s+/g, '')
+        : '無中文介紹';
+      initPokemon(id, { detail: detailText });
+    } catch (err) {
+      console.error(err);
+    }
+  }
 }
 
 function detailClose() {
@@ -163,6 +186,7 @@ function recoverHappiness() {
 
 .button-container button,
 .recover-btn,
+.cry-btn,
 .close-tab {
   padding: 12px 20px;
   font-size: 16px;
@@ -172,6 +196,7 @@ function recoverHappiness() {
   border: none;
   border-radius: 4px;
 }
+.cry-btn,
 .recover-btn {
   margin-top: 10px;
 }

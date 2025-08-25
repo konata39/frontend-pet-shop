@@ -5,14 +5,14 @@
   >
     <div class="card-name">{{ name }}</div>
     <img class="card-image" :src="image" :alt="name" />
-    <div class="card-detail">{{ detail }}</div>
     <div class="card-stats">健康值：{{ health }} / 100</div>
     <div class="card-stats">快樂值：{{ happiness }} / 100</div>
+    <audio ref="cryAudio"></audio>
   </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from "vue";
+import { defineProps, defineEmits, computed, ref, watch } from "vue";
 import { usePokemonStore } from "../providers/PokemonProvider.vue";
 
 const props = defineProps({
@@ -27,8 +27,26 @@ const detail = computed(() => state[props.id]?.detail ?? "");
 const health = computed(() => state[props.id]?.health ?? 0);
 const happiness = computed(() => state[props.id]?.happiness ?? 0);
 
+const cryAudio = ref(null);
+const defaultCry = new URL("../assets/pokemon_sound.mp3", import.meta.url).href;
+const lowHealthCry = new URL("../assets/low_health.mp3", import.meta.url).href;
+const lowHappinessCry = new URL("../assets/low_happiness.mp3", import.meta.url).href;
+
+function playCry(event) {
+  event?.stopPropagation();
+  if (!cryAudio.value) return;
+  let src = defaultCry;
+  if (health.value < 60) {
+    src = lowHealthCry;
+  } else if (happiness.value < 60) {
+    src = lowHappinessCry;
+  }
+  cryAudio.value.src = src;
+  cryAudio.value.play();
+}
 
 function handleClick() {
+  playCry();
   emit("select", props.id);
 }
 
@@ -100,23 +118,11 @@ const cardClasses = computed(() => ({
   object-fit: contain;
 }
 
-.card-detail {
-  margin-top: 5px;
-  font-family: "Noto Sans TC", sans-serif;
-  font-size: 12px;
-  width: 150px;
-  height: 100px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-}
 @media screen and (max-width: 640px) {
   .card {
     width: 110px;
     height: 180px;
-    background-color: #ff0;
+    background-color: #fff;
     margin: 6px;
   }
   .card-name {
@@ -127,10 +133,6 @@ const cardClasses = computed(() => ({
     width: 80px;
     height: 80px;
   }
-  .card-detail {
-    width: 80px;
-    height: 80px;
-    font-size: 10px;
-  }
+
 }
 </style>
