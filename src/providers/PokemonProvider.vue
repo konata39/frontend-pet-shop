@@ -13,8 +13,8 @@ function createPokemonStore() {
         image: '',
         detail: '',
         detailUrl: '',
-        health: 0,
-        happiness: 0,
+        health: 30,
+        happiness: 30,
         ...data,
       };
     } else {

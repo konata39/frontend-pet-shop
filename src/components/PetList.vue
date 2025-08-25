@@ -1,4 +1,5 @@
 <template>
+<audio ref="cryAudio"></audio>
 <div v-if="isLoading" class="loading">載入中...</div>
 <div v-else id="card-container" class="card-container">
       <Card
@@ -6,6 +7,7 @@
         :key="id"
         :id="id"
         @select="detailOpen"
+        @cry="playCry"
       />
     </div>
     <div class="button-container">
@@ -29,10 +31,9 @@
       <button class="recover-btn" @click="recoverHappiness">
         跟寶可夢玩
       </button>
-      <button class="cry-btn" @click="playDefaultCry($event)">
+      <button class="cry-btn" @click="playDefaultCry">
         播放叫聲
       </button>
-      <audio ref="cryAudio"></audio>
       </div>
     </div>
 </template>
@@ -46,12 +47,27 @@ const isLoading = ref(false);
 const sidebarVisible = ref(false);
 const cryAudio = ref(null);
 const defaultCry = new URL("../assets/pokemon_sound.mp3", import.meta.url).href;
+const lowHealthCry = new URL("../assets/low_health.mp3", import.meta.url).href;
+const lowHappinessCry = new URL("../assets/low_happiness.mp3", import.meta.url).href;
 
 const selectedId = ref(null);
 const { state, updateHealth, updateHappiness, initPokemon } = usePokemonStore();
 
-function playDefaultCry(event) {
+function playDefaultCry() {
   cryAudio.value.src = defaultCry;
+  cryAudio.value.play();
+}
+
+function playCry(id) {
+  const pokemon = state[id];
+  if (!pokemon) return;
+  let src = defaultCry;
+  if (pokemon.health < 60) {
+    src = lowHealthCry;
+  } else if (pokemon.happiness < 60) {
+    src = lowHappinessCry;
+  }
+  cryAudio.value.src = src;
   cryAudio.value.play();
 }
 

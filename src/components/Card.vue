@@ -7,19 +7,18 @@
     <img class="card-image" :src="image" :alt="name" />
     <div class="card-stats">健康值：{{ health }} / 100</div>
     <div class="card-stats">快樂值：{{ happiness }} / 100</div>
-    <audio ref="cryAudio"></audio>
   </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed, ref, watch } from "vue";
+import { defineProps, defineEmits, computed } from "vue";
 import { usePokemonStore } from "../providers/PokemonProvider.vue";
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
 });
 
-const emit = defineEmits(["select"]);
+const emit = defineEmits(["select", "cry"]);
 const { state } = usePokemonStore();
 const name = computed(() => state[props.id]?.name ?? "");
 const image = computed(() => state[props.id]?.image ?? "");
@@ -27,26 +26,8 @@ const detail = computed(() => state[props.id]?.detail ?? "");
 const health = computed(() => state[props.id]?.health ?? 0);
 const happiness = computed(() => state[props.id]?.happiness ?? 0);
 
-const cryAudio = ref(null);
-const defaultCry = new URL("../assets/pokemon_sound.mp3", import.meta.url).href;
-const lowHealthCry = new URL("../assets/low_health.mp3", import.meta.url).href;
-const lowHappinessCry = new URL("../assets/low_happiness.mp3", import.meta.url).href;
-
-function playCry(event) {
-  event?.stopPropagation();
-  if (!cryAudio.value) return;
-  let src = defaultCry;
-  if (health.value < 60) {
-    src = lowHealthCry;
-  } else if (happiness.value < 60) {
-    src = lowHappinessCry;
-  }
-  cryAudio.value.src = src;
-  cryAudio.value.play();
-}
-
 function handleClick() {
-  playCry();
+  emit("cry", props.id);
   emit("select", props.id);
 }
 
@@ -76,7 +57,7 @@ const cardClasses = computed(() => ({
 .card-stats {
   font-size: 12px;
   font-family: "Noto Sans TC", sans-serif;
-  color: #222;
+  color: #000;
   margin-top: 4px;
 }
 
@@ -105,7 +86,7 @@ const cardClasses = computed(() => ({
   width: 150px;
   height: 30px;
   background-color: #F5F5F5;
-  color: #222;
+  color: #000;
   margin-top: 10px;
   border-radius: 5px;
   font-size: 18pt;
