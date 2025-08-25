@@ -1,4 +1,5 @@
 <template>
+<audio ref="cryAudio"></audio>
 <div v-if="isLoading" class="loading">載入中...</div>
 <div v-else id="card-container" class="card-container">
       <Card
@@ -6,6 +7,7 @@
         :key="id"
         :id="id"
         @select="detailOpen"
+        @cry="playCry"
       />
     </div>
     <div class="button-container">
@@ -29,67 +31,94 @@
       <button class="recover-btn" @click="recoverHappiness">
         跟寶可夢玩
       </button>
-      <button class="cry-btn" @click="playDefaultCry($event)">
+      <button class="cry-btn" @click="playDefaultCry">
         播放叫聲
       </button>
-      <audio ref="cryAudio"></audio>
+      </div>
+    </div>
+    <div class="event-panel" :class="{ active: eventVisible }">
+      <p>{{ eventMessage }}</p>
+      <div class="event-buttons">
+        <button @click="respondToEvent(true)">是</button>
+        <button @click="respondToEvent(false)">否</button>
       </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watchEffect } from "vue";
 import Card from "../components/Card.vue";
-import { usePokemonStore } from "../providers/PokemonProvider.vue";
+import { usePetStore } from "../stores/pet.js";
 const offset = ref(0);
 const isLoading = ref(false);
 const sidebarVisible = ref(false);
 const cryAudio = ref(null);
 const defaultCry = new URL("../assets/pokemon_sound.mp3", import.meta.url).href;
+const lowHealthCry = new URL("../assets/low_health.mp3", import.meta.url).href;
+const lowHappinessCry = new URL("../assets/low_happiness.mp3", import.meta.url).href;
 
 const selectedId = ref(null);
-const { state, updateHealth, updateHappiness, initPokemon } = usePokemonStore();
+const { pets, updateHealth, updateHappiness, updateHunger, initPet } = usePetStore();
 
-function playDefaultCry(event) {
+function playDefaultCry() {
   cryAudio.value.src = defaultCry;
   cryAudio.value.play();
 }
 
+function playCry(id) {
+  const pokemon = pets[id];
+  if (!pokemon) return;
+  let src = defaultCry;
+  if (pokemon.health < 60) {
+    src = lowHealthCry;
+  } else if (pokemon.happiness < 60) {
+    src = lowHappinessCry;
+  }
+  cryAudio.value.src = src;
+  cryAudio.value.play();
+}
+
 const cardIds = computed(() =>
-  Object.keys(state)
+  Object.keys(pets)
     .map((id) => Number(id))
     .filter((id) => !Number.isNaN(id))
 );
 
 const selectedName = computed(() =>
-  selectedId.value !== null && state[selectedId.value]
-    ? state[selectedId.value].name
+  selectedId.value !== null && pets[selectedId.value]
+    ? pets[selectedId.value].name
     : ''
 );
 
 const selectedImage = computed(() =>
-  selectedId.value !== null && state[selectedId.value]
-    ? state[selectedId.value].image
+  selectedId.value !== null && pets[selectedId.value]
+    ? pets[selectedId.value].image
     : ''
 );
 
 const selectedDetail = computed(() =>
-  selectedId.value !== null && state[selectedId.value]
-    ? state[selectedId.value].detail
+  selectedId.value !== null && pets[selectedId.value]
+    ? pets[selectedId.value].detail
     : ''
 );
 
 const selectedHealth = computed(() =>
-  selectedId.value !== null && state[selectedId.value]
-    ? state[selectedId.value].health
+  selectedId.value !== null && pets[selectedId.value]
+    ? pets[selectedId.value].health
     : 0
 );
 
 const selectedHappiness = computed(() =>
-  selectedId.value !== null && state[selectedId.value]
-    ? state[selectedId.value].happiness
+  selectedId.value !== null && pets[selectedId.value]
+    ? pets[selectedId.value].happiness
     : 0
 );
+
+const eventVisible = ref(false);
+const eventMessage = ref("\\");
+let eventAction = null;
+let eventTimer = null;
+
 async function getPokeAPI() {
   isLoading.value = true;
   try {
@@ -101,7 +130,7 @@ async function getPokeAPI() {
       const pokeData = await pokeRes.json();
 
       const APIUrl = `https://pokeapi.co/api/v2/pokemon-species/${pokeData.id}/`;
-      initPokemon(pokeData.id, {
+      initPet(pokeData.id, {
         name: pokeData.name,
         image: pokeData.sprites.front_default,
         detail: '',
@@ -122,7 +151,7 @@ async function getPokeAPI() {
 async function detailOpen(id) {
   selectedId.value = id;
   sidebarVisible.value = true;
-  const pokemon = state[id];
+  const pokemon = pets[id];
   if (pokemon && !pokemon.detail) {
     try {
       const speciesRes = await fetch(pokemon.detailUrl);
@@ -133,7 +162,7 @@ async function detailOpen(id) {
       const detailText = entry
         ? entry.flavor_text.replace(/\s+/g, '')
         : '無中文介紹';
-      initPokemon(id, { detail: detailText });
+      initPet(id, { detail: detailText });
     } catch (err) {
       console.error(err);
     }
@@ -147,15 +176,52 @@ function detailClose() {
 
 function recoverHealth() {
   if (selectedId.value === null) return;
-  const currentHealth = state[selectedId.value].health;
+  const currentHealth = pets[selectedId.value].health;
   updateHealth(selectedId.value, Math.min(currentHealth + 10, 100));
 }
 
 function recoverHappiness() {
   if (selectedId.value === null) return;
-  const currentHappiness = state[selectedId.value].happiness;
+  const currentHappiness = pets[selectedId.value].happiness;
   updateHappiness(selectedId.value, Math.min(currentHappiness + 10, 100));
 }
+
+function triggerRandomEvent() {
+  if (eventVisible.value) return;
+  const ids = cardIds.value;
+  if (!ids.length) return;
+  const randomId = ids[Math.floor(Math.random() * ids.length)];
+  const pet = pets[randomId];
+  const type = ["health", "happiness", "hunger"][Math.floor(Math.random() * 3)];
+  if (type === "health") {
+    updateHealth(randomId, pet.health - 10);
+    eventMessage.value = `${pet.name} 生病了，要餵藥嗎？`;
+    eventAction = () => updateHealth(randomId, Math.min(pet.health + 10, 100));
+  } else if (type === "happiness") {
+    updateHappiness(randomId, pet.happiness - 10);
+    eventMessage.value = `${pet.name} 心情不好，要安撫嗎？`;
+    eventAction = () =>
+      updateHappiness(randomId, Math.min(pet.happiness + 10, 100));
+  }
+  eventVisible.value = true;
+  clearTimeout(eventTimer);
+  eventTimer = setTimeout(() => respondToEvent(false), 5000);
+}
+
+function respondToEvent(accepted) {
+  if (accepted && typeof eventAction === "function") {
+    eventAction();
+  }
+  eventVisible.value = false;
+  eventAction = null;
+  clearTimeout(eventTimer);
+}
+
+watchEffect((onCleanup) => {
+  if (!cardIds.value.length) return;
+  const interval = setInterval(triggerRandomEvent, 60000);
+  onCleanup(() => clearInterval(interval));
+});
 </script>
 
 <style scoped>
@@ -187,7 +253,8 @@ function recoverHappiness() {
 .button-container button,
 .recover-btn,
 .cry-btn,
-.close-tab {
+.close-tab,
+.event-panel button {
   padding: 12px 20px;
   font-size: 16px;
   cursor: pointer;
@@ -218,6 +285,28 @@ function recoverHappiness() {
   right:0px;
   box-shadow:0 2px 5px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12);
   animation: animateright 0.4s;
+}
+.event-panel {
+  position: fixed;
+  top: 20px;
+  left: -320px;
+  width: 300px;
+  background-color: #fff;
+  padding: 20px;
+  box-shadow:0 2px 5px 0 rgba(0,0,0,0.16),0 2px 10px 0 rgba(0,0,0,0.12);
+  transition: left 0.3s;
+  z-index: 2000;
+}
+
+.event-panel.active {
+  left: 20px;
+}
+
+.event-buttons {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 @keyframes animateright {
   0% {right:-300px; opacity: 0;}
