@@ -12,19 +12,19 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from "vue";
-import { usePokemonStore } from "../providers/PokemonProvider.vue";
+import { usePetStore } from "../stores/pet.js";
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
 });
 
 const emit = defineEmits(["select", "cry"]);
-const { state } = usePokemonStore();
-const name = computed(() => state[props.id]?.name ?? "");
-const image = computed(() => state[props.id]?.image ?? "");
-const detail = computed(() => state[props.id]?.detail ?? "");
-const health = computed(() => state[props.id]?.health ?? 0);
-const happiness = computed(() => state[props.id]?.happiness ?? 0);
+const { pets } = usePetStore();
+const name = computed(() => pets[props.id]?.name ?? "");
+const image = computed(() => pets[props.id]?.image ?? "");
+const detail = computed(() => pets[props.id]?.detail ?? "");
+const health = computed(() => pets[props.id]?.health ?? 0);
+const happiness = computed(() => pets[props.id]?.happiness ?? 0);
 
 function handleClick() {
   emit("cry", props.id);

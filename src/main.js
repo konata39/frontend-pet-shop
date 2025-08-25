@@ -2,8 +2,9 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import App from './App.vue'
-import { providePokemonStore } from './providers/PokemonProvider.vue'
+import { createPinia } from 'pinia'
 
 const app = createApp(App)
-providePokemonStore(app)
+const pinia = createPinia()
+app.use(pinia)
 app.mount('#app')
